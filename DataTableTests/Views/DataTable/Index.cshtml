@@ -1,0 +1,136 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/_Shared.cshtml";
+}
+
+<h2>Index</h2>
+
+
+<button id="GetDataButton">GetData</button>
+
+<table id="StoreTable" class="display">
+
+
+</table>
+
+
+<div id="model-dialog" style="display: none">
+
+    <table id="ModelTable"></table>
+
+</div>
+
+<script>
+
+    $(document).ready(function () {
+
+  
+
+         var StoreTable = $('#StoreTable').DataTable({
+            'columnDefs':[
+                { title: "Name", 'targets': 0 },
+                { title: "Address", 'targets': 1 },
+            ],
+            data: [],
+            columns: [
+                { 'data': 'Name', 'className': 'dt-center'},
+                { 'data': 'Address', 'className': 'dt-center' },
+                { 'data': 'Id', 'bVisible': false }
+            ],
+            rowCallback: function (row, data) { },
+            filter: false,
+            info: false,
+            ordering: false,
+            processing: true,
+            retrieve: true
+        });
+
+        $('#GetDataButton').on("click", function (event) {
+            $.ajax({
+                url: '/DataTable/GetStores',
+                type: 'POST',
+                data: {}
+
+            }).done(function (data) {
+
+                StoreTable.clear().draw();
+                StoreTable.rows.add(data).draw();
+
+            }).fail(function (jqXHR, statusCode, err) {
+
+            });
+        });
+
+
+        var modelTable = $('#ModelTable').DataTable({
+            'columnDefs': [
+                { title: "Name", 'targets': 0 },
+                { title: "Color", 'targets': 1 },
+            ],
+            data: [],
+            columns: [
+                { 'data': 'Name', 'className': 'dt-center' },
+                { 'data': 'Color', 'className': 'dt-center' },
+            ],
+            rowCallback: function (row, data) { },
+            filter: false,
+            info: false,
+            ordering: false,
+            processing: true,
+            retrieve: true
+        });
+
+        /* Add events */
+        $("body").on("click", "#StoreTable tbody tr", function (e) {
+            e.preventDefault();
+
+
+            var rowNum = $(this).parent().parent().children().index($(this).parent());
+
+   
+           // table.row(row_that_you_want).data()[0]
+            var storeId = StoreTable.row(this).data()['Id'];
+
+
+            $('#model-dialog').dialog({
+                width: $(window).width(),
+                height:$(window).height(),
+                buttons: {
+                    "Cancel": function () {
+                        $(this).dialog("close");
+                    }
+                }
+                
+            });
+    
+            $.ajax({
+                url: '/DataTable/GetModels',
+                type: 'POST',
+                data: {'StoreId': storeId}
+
+            }).done(function (data) {
+
+                modelTable.clear().draw();
+                modelTable.rows.add(data).draw();
+
+            }).fail(function (jqXHR, statusCode, err) {
+
+            });
+
+
+            $(window).resize(function () {
+                $('.ui-dialog').css({
+                    'width': $(window).width(),
+                    'height': $(window).height(),
+                    'left': '0px',
+                    'top': '0px'
+                });
+            }).resize(); //<---- resizes on page ready
+        });
+
+      
+
+    });
+
+</script>
